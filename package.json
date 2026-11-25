@@ -1,0 +1,10 @@
+{
+  "name": "jv-orcamentos",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sistema de orçamentos da JV Serviços e Soluções",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}

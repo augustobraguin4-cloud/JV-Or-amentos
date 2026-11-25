@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão de Orçamentos - JV Serviços e Soluções</title>
+<style>
+  :root {
+    --sb: #0f172a; --sb2: #111c33;
+    --azul: #1e40af; --azul2: #3b82f6; --roxo: #7c3aed;
+    --verde: #16a34a; --verde2: #22c55e; --amarelo: #f59e0b; --vermelho: #dc2626;
+    --bg: #f1f5f9; --card: #ffffff; --txt: #0f172a; --suave: #64748b; --borda: #e2e8f0;
+    --sombra: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.15);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--bg); color: var(--txt); font-size: 14px; }
+  .app { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+
+  /* ---------- sidebar ---------- */
+  aside.sidebar { background: linear-gradient(180deg, var(--sb), var(--sb2)); color: #cbd5e1; padding: 22px 16px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 12px; padding: 6px 8px 20px; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 14px; }
+  .logo-ico { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, var(--azul2), var(--roxo)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
+  .logo b { color: #fff; font-size: 14px; display: block; }
+  .logo small { font-size: 11px; color: #94a3b8; }
+  .menu-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; padding: 14px 10px 6px; }
+  .menu { display: flex; flex-direction: column; gap: 4px; }
+  .nav-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: none; background: transparent; color: #cbd5e1; border-radius: 10px; cursor: pointer; font-size: 14px; text-align: left; transition: background .2s, color .2s; font-family: inherit; }
+  .nav-btn:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-btn.ativo { background: linear-gradient(90deg, rgba(59,130,246,.35), rgba(59,130,246,.05)); color: #fff; box-shadow: inset 3px 0 0 var(--azul2); }
+  .nav-btn .ico { width: 20px; text-align: center; font-size: 15px; }
+  .nav-btn .n { margin-left: auto; background: rgba(255,255,255,.12); font-size: 11px; padding: 2px 8px; border-radius: 999px; color: #fff; }
+  .sb-rodape { margin-top: auto; padding: 14px 8px 0; border-top: 1px solid rgba(255,255,255,.08); font-size: 11px; color: #64748b; line-height: 1.6; }
+  .sync { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; color: #94a3b8; }
+  .sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+  .sync.ok::before { background: var(--verde2); }
+  .sync.salvando::before { background: var(--amarelo); animation: pisca 1s infinite; }
+  .sync.erro::before { background: var(--vermelho); }
+  @keyframes pisca { 50% { opacity: .3; } }
+
+  /* ---------- conteúdo ---------- */
+  main.conteudo { padding: 26px 30px; min-width: 0; }
+  .view { display: none; }
+  .view.ativa { display: block; animation: subir .35s ease both; }
+  @keyframes subir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .cabec { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .cabec h1 { margin: 0; font-size: 24px; letter-spacing: -.3px; }
+  .cabec p { margin: 4px 0 0; color: var(--suave); }
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .card { background: var(--card); border-radius: 16px; padding: 22px; box-shadow: var(--sombra); margin-bottom: 20px; border: 1px solid #fff; }
+  .card h2 { margin: 0 0 16px; font-size: 13px; color: var(--azul); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .6px; }
+  .card h2 .ico { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--azul2), var(--azul)); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+
+  /* ---------- painel ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .stat { background: var(--card); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); position: relative; overflow: hidden; }
+  .stat::after { content: ""; position: absolute; right: -22px; top: -22px; width: 92px; height: 92px; border-radius: 50%; background: var(--cor); opacity: .14; }
+  .stat .rot { font-size: 11px; color: var(--suave); font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+  .stat .num { font-size: 26px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat .sub { font-size: 12px; color: var(--suave); margin-top: 4px; }
+  .duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .item-lista { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--borda); }
+  .item-lista:last-child { border-bottom: none; }
+  .data-caixa { width: 52px; text-align: center; background: #eff6ff; color: var(--azul); border-radius: 12px; padding: 6px 0; flex-shrink: 0; }
+  .data-caixa b { display: block; font-size: 18px; line-height: 1; }
+  .data-caixa small { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .item-lista .info { flex: 1; min-width: 0; }
+  .item-lista .info b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-lista .info small { color: var(--suave); }
+  .item-lista .valor { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- status ---------- */
+  .st { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st-em { background: #fef3c7; color: #92400e; }
+  .st-apr { background: #ede9fe; color: #5b21b6; }
+  .st-ag { background: #dbeafe; color: #1e40af; }
+  .st-con { background: #dcfce7; color: #166534; }
+
+  /* ---------- botões ---------- */
+  button.btn { padding: 10px 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; font-family: inherit; color: #fff; background: linear-gradient(135deg, var(--azul2), var(--azul)); box-shadow: 0 6px 16px -8px rgba(37,99,235,.7); transition: transform .15s, box-shadow .2s; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -8px rgba(37,99,235,.7); }
+  button.btn:active { transform: translateY(0); }
+  button.btn:disabled { opacity: .6; cursor: wait; transform: none; }
+  button.btn.verde { background: linear-gradient(135deg, var(--verde2), var(--verde)); box-shadow: 0 6px 16px -8px rgba(22,163,74,.7); }
+  button.btn.cinza { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; }
+  button.btn.claro { background: #fff; color: var(--azul); border: 1.5px solid var(--borda); box-shadow: none; }
+  button.btn.claro:hover { border-color: var(--azul2); }
+  button.btn.pequeno { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+  button.btn.perigo { background: #fee2e2; color: var(--vermelho); box-shadow: none; }
+  button.btn.perigo:hover { background: var(--vermelho); color: #fff; }
+
+  /* ---------- lista ---------- */
+  .barra-lista { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border: 1.5px solid var(--borda); background: #fff; color: var(--suave); padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all .2s; }
+  .chip span { background: #f1f5f9; border-radius: 999px; padding: 1px 7px; margin-left: 6px; font-size: 11px; }
+  .chip:hover { border-color: var(--azul2); color: var(--azul); }
+  .chip.ativo { background: var(--azul); border-color: var(--azul); color: #fff; }
+  .chip.ativo span { background: rgba(255,255,255,.2); color: #fff; }
+  .busca { position: relative; }
+  .busca input { padding: 10px 12px 10px 36px; border: 1.5px solid var(--borda); border-radius: 10px; font-size: 14px; width: 260px; font-family: inherit; }
+  .busca::before { content: "🔍"; position: absolute; left: 11px; top: 9px; font-size: 13px; }
+  .tabela-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--borda); background: #fff; }
+  table { width: 100%; border-collapse: collapse; min-width: 820px; }
+  th { background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--suave); padding: 12px; text-align: left; }
+  td { padding: 12px; border-top: 1px solid var(--borda); vertical-align: middle; }
+  tr.linha:hover { background: #f8fafc; }
+  .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cliente b { display: block; }
+  .cliente small { color: var(--suave); }
+  .acoes-linha { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .vazio { text-align: center; color: var(--suave); padding: 40px 20px; }
+  .vazio .grande { font-size: 40px; margin-bottom: 8px; }
+
+  /* ---------- editor ---------- */
+  .editor-grid { display: grid; grid-template-columns: 1fr 290px; gap: 20px; align-items: start; }
+  .resumo { position: sticky; top: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--suave); font-weight: 600; }
+  input, select, textarea { padding: 10px 12px; border: 1.5px solid var(--borda); border-radius: 10px; font-size: 14px; font-family: inherit; color: var(--txt); background: #fff; transition: border .2s, box-shadow .2s; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--azul2); box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+  textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+  td input, td select { padding: 8px 10px; border-radius: 8px; }
+  .tabela-itens { min-width: 700px; }
+  tr.nova { animation: piscar 1.2s ease; }
+  @keyframes piscar2 { 0% { background: #dcfce7; } 100% { background: transparent; } }
+  tr.nova { animation-name: piscar2; }
+  .btn-x { width: 32px; height: 32px; border-radius: 50%; border: none; background: #fee2e2; color: var(--vermelho); cursor: pointer; font-size: 13px; transition: transform .15s, background .2s; }
+  .btn-x:hover { background: var(--vermelho); color: #fff; transform: rotate(90deg); }
+  .total-linha { font-weight: 700; }
+  .tipo-sel { font-weight: 700; }
+  .linha-res { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--borda); font-size: 13px; color: var(--suave); }
+  .linha-res b { color: var(--txt); font-variant-numeric: tabular-nums; }
+  .total-destaque { margin-top: 14px; background: linear-gradient(135deg, var(--verde2), var(--verde)); color: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 10px 24px -10px rgba(22,163,74,.7); }
+  .total-destaque small { opacity: .9; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
+  .total-destaque .valor { font-size: 28px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .barra { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 12px; }
+  .barra > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--azul2), var(--verde2)); transition: width .5s ease; border-radius: 999px; }
+  .legenda { font-size: 12px; color: var(--suave); text-align: center; margin-top: 8px; }
+  .calc-box { background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 1.5px dashed #a5b4fc; border-radius: 14px; padding: 18px; }
+  .dica { font-size: 12px; color: var(--suave); margin: 0 0 14px; line-height: 1.5; }
+  .abas { display: inline-flex; background: #e2e8f0; border-radius: 10px; padding: 4px; margin-bottom: 14px; }
+  .abas button { border: none; background: transparent; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--suave); transition: all .2s; font-family: inherit; }
+  .abas button.ativa { background: #fff; color: var(--azul); box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+  .modo { display: none; }
+  .modo.ativo { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .resultado-calc { margin-top: 16px; padding: 14px 16px; background: #fff; border-radius: 12px; border-left: 4px solid var(--verde2); font-size: 14px; line-height: 1.6; min-height: 52px; }
+  .resultado-calc b { color: var(--verde); }
+  .resultado-calc small { color: var(--suave); }
+
+  /* ---------- tela de senha ---------- */
+  #login { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3a8a, #7c3aed); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  #login.visivel { display: flex; }
+  .login-caixa { background: #fff; border-radius: 20px; padding: 32px; width: 100%; max-width: 360px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.4); text-align: center; }
+  .login-caixa .logo-ico { margin: 0 auto 14px; width: 56px; height: 56px; font-size: 20px; }
+  .login-caixa h2 { margin: 0 0 6px; font-size: 20px; }
+  .login-caixa p { margin: 0 0 20px; color: var(--suave); font-size: 13px; }
+  .login-caixa input { text-align: center; font-size: 16px; margin-bottom: 12px; }
+  .login-caixa .erro { color: var(--vermelho); font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+  .login-caixa button { width: 100%; }
+
+  /* ---------- toast ---------- */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--txt); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); transition: transform .4s cubic-bezier(.2,.9,.3,1.2); z-index: 200; max-width: 90vw; }
+  #toast.visivel { transform: translateX(-50%) translateY(0); }
+
+  /* ---------- responsivo ---------- */
+  @media (max-width: 1000px) { .duas-colunas, .editor-grid { grid-template-columns: 1fr; } .resumo { position: static; } }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    aside.sidebar { position: sticky; top: 0; height: auto; z-index: 30; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; overflow-x: auto; }
+    .logo { border: none; padding: 0; margin: 0 8px 0 0; flex-shrink: 0; }
+    .logo small { display: none; }
+    .menu { flex-direction: row; flex-shrink: 0; gap: 6px; }
+    .menu-titulo, .sb-rodape { display: none; }
+    .nav-btn { width: auto; white-space: nowrap; }
+    main.conteudo { padding: 18px; }
+    .busca input { width: 100%; }
+  }
+
+  /* ---------- impressão ---------- */
+  @media print {
+    body { background: #fff; }
+    .app { display: block; }
+    aside.sidebar, .nao-imprimir, #toast, #login { display: none !important; }
+    main.conteudo { padding: 0; }
+    .view { display: none !important; }
+    #view-editor { display: block !important; animation: none; }
+    .card { box-shadow: none; border: none; padding: 0; margin-bottom: 14px; }
+    .card h2 .ico { display: none; }
+    input, select, textarea { border: none !important; padding: 2px !important; background: transparent; box-shadow: none !important; }
+    .resumo { position: static; }
+    .editor-grid { display: block; }
+    .total-destaque, th, .st, .barra > div { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tabela-wrap { border: none; }
+    table { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TELA DE SENHA ===================== -->
+<div id="login">
+  <div class="login-caixa">
+    <div class="logo-ico">JV</div>
+    <h2>Acesso restrito</h2>
+    <p>Digite a senha para acessar os orçamentos.</p>
+    <input id="senha-input" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter')entrar()">
+    <div class="erro" id="login-erro"></div>
+    <button class="btn" onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-ico">JV</div>
+      <div>
+        <b>JV Serviços</b>
+        <small>Gestão de orçamentos</small>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <div class="menu-titulo">Menu</div>
+      <button class="nav-btn" data-view="dashboard" onclick="mostrarTela('dashboard')"><span class="ico">📊</span> Painel</button>
+      <button class="nav-btn" data-view="lista" onclick="mostrarTela('lista')"><span class="ico">📋</span> Orçamentos <span class="n" id="n-todos">0</span></button>
+      <button class="nav-btn" data-view="editor" onclick="novoOrcamento()"><span class="ico">➕</span> Novo orçamento</button>
+
+      <div class="menu-titulo">Dados</div>
+      <button class="nav-btn" onclick="exportarBackup()"><span class="ico">💾</span> Exportar backup</button>
+      <button class="nav-btn" onclick="document.getElementById('arquivo-import').click()"><span class="ico">📂</span> Importar backup</button>
+      <input type="file" id="arquivo-import" accept="application/json" style="display:none" onchange="importarBackup(event)">
+      <button class="nav-btn" onclick="sair()"><span class="ico">🚪</span> Sair</button>
+    </nav>
+
+    <div class="sb-rodape">
+      <div class="sync" id="sync">Conectando…</div><br>
+      Dados salvos no banco de dados da empresa.
+    </div>
+  </aside>
+
+  <!-- ===================== CONTEÚDO ===================== -->
+  <main class="conteudo">
+
+    <!-- ---------- PAINEL ---------- -->
+    <section class="view" id="view-dashboard">
+      <div class="cabec">
+        <div>
+          <h1>Painel</h1>
+          <p>Visão geral dos orçamentos e serviços agendados</p>
+        </div>
+        <div class="acoes"><button class="btn" onclick="novoOrcamento()">➕ Novo orçamento</button></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="duas-colunas">
+        <div class="card">
+          <h2><span class="ico">📅</span> Próximos agendamentos</h2>
+          <div id="lista-agendados"></div>
+        </div>
+        <div class="card">
+          <h2><span class="ico">🕒</span> Atualizados recentemente</h2>
+          <div id="lista-recentes"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- LISTA ---------- -->
+    <section class="view" id="view-lista">
+      <div class="cabec">
+        <div>
+          <h1>Orçamentos</h1>
+          <p>Veja, abra e acompanhe todos os orçamentos</p>
+        </div>
+        <div class="acoes"><button class="btn" onclick="novoOrcamento()">➕ Novo orçamento</button></div>
+      </div>
+      <div class="card">
+        <div class="barra-lista">
+          <div class="chips" id="chips"></div>
+          <div class="busca"><input id="busca" type="text" placeholder="Buscar cliente, endereço ou nº" oninput="renderLista()"></div>
+        </div>
+        <div class="tabela-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:80px">Nº</th>
+                <th>Cliente / Endereço</th>
+                <th style="width:150px">Status</th>
+                <th style="width:120px">Agendado para</th>
+                <th style="width:110px">Criado em</th>
+                <th class="num" style="width:130px">Total</th>
+                <th style="width:250px"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-lista"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- EDITOR ---------- -->
+    <section class="view" id="view-editor">
+      <div class="cabec">
+        <div>
+          <h1 id="titulo-editor">Novo orçamento</h1>
+          <p id="subtitulo-editor">Preencha os dados e salve para acompanhar na gestão</p>
+        </div>
+        <div class="acoes nao-imprimir">
+          <button class="btn claro" onclick="mostrarTela('lista')">← Voltar</button>
+          <button class="btn verde" id="btn-salvar-topo" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
+          <button class="btn claro" onclick="window.print()">🖨 Imprimir / PDF</button>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <div>
+          <section class="card">
+            <h2><span class="ico">👤</span> Dados da venda</h2>
+            <div class="grid">
+              <label>Nº do orçamento <input id="numero" type="text"></label>
+              <label>Status
+                <select id="status" onchange="ajustarStatus()">
+                  <option>Em Orçamento</option><option>Aprovado</option><option>Agendado</option><option>Concluído</option>
+                </select>
+              </label>
+              <label>Data do agendamento <input id="dataAgendada" type="date"></label>
+              <label>Data do orçamento <input id="data" type="date"></label>
+              <label>Cliente <input id="cliente" type="text" placeholder="Nome do cliente"></label>
+              <label>Contato <input id="contato" type="text" placeholder="Nome e telefone"></label>
+              <label>Endereço do imóvel <input id="endereco" type="text" placeholder="Rua, número, bairro"></label>
+              <label>Vendedor <input id="vendedor" type="text"></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2><span class="ico">🧾</span> Itens da venda</h2>
+            <div class="tabela-wrap">
+              <table class="tabela-itens">
+                <thead>
+                  <tr>
+                    <th style="width:120px">Tipo</th>
+                    <th>Descrição</th>
+                    <th class="num" style="width:120px">Preço unit.</th>
+                    <th class="num" style="width:90px">Qtd.</th>
+                    <th class="num" style="width:120px">Desconto</th>
+                    <th class="num" style="width:130px">Total</th>
+                    <th style="width:50px"></th>
+                  </tr>
+                </thead>
+                <tbody id="itens"></tbody>
+              </table>
+            </div>
+            <div id="vazio-itens" class="vazio" style="display:none">Nenhum item ainda. Adicione um serviço ou produto abaixo.</div>
+            <div class="acoes nao-imprimir" style="margin-top:14px">
+              <button class="btn" onclick="adicionarLinha('Serviço')">＋ Adicionar serviço</button>
+              <button class="btn" onclick="adicionarLinha('Produto')">＋ Adicionar produto</button>
+            </div>
+          </section>
+
+          <section class="card nao-imprimir">
+            <h2><span class="ico">🧮</span> Calculadora de materiais</h2>
+            <div class="calc-box">
+              <div class="abas">
+                <button id="aba-qtd" class="ativa" onclick="trocarModo('qtd')">Sei a quantidade</button>
+                <button id="aba-area" onclick="trocarModo('area')">Calcular pela área</button>
+              </div>
+              <p class="dica" id="dica-modo">Ex.: 8 caixas × R$ 50,00 = R$ 400,00.</p>
+              <div class="grid">
+                <label>Nome do material <input id="c-nome" type="text" placeholder="Ex.: Piso cerâmico"></label>
+                <label>Unidade de compra
+                  <select id="c-unidade" onchange="calcMaterial()">
+                    <option>Caixa</option><option>Lata</option><option>Saco</option><option>Galão</option><option>Unidade</option><option>Metro</option><option>Rolo</option>
+                  </select>
+                </label>
+                <label>Preço por unidade (R$) <input id="c-preco" type="text" inputmode="decimal" placeholder="50,00" oninput="calcMaterial()"></label>
+                <label>Desconto no material (R$) <input id="c-desc" type="text" inputmode="decimal" placeholder="0" oninput="calcMaterial()"></label>
+              </div>
+              <div class="modo ativo" id="modo-qtd" style="margin-top:14px">
+                <label>Quantidade <input id="c-qtd" type="text" inputmode="decimal" placeholder="8" oninput="calcMaterial()"></label>
+              </div>
+              <div class="modo" id="modo-area" style="margin-top:14px">
+                <label>Área a cobrir (m²) <input id="c-area" type="text" inputmode="decimal" placeholder="Ex.: 42" oninput="calcMaterial()"></label>
+                <label>Rendimento por unidade (m²) <input id="c-rend" type="text" inputmode="decimal" placeholder="Ex.: 18" oninput="calcMaterial()"></label>
+              </div>
+              <div class="resultado-calc" id="c-resultado"><small>Preencha os campos para ver o cálculo.</small></div>
+              <div class="acoes" style="margin-top:12px">
+                <button class="btn verde" onclick="enviarMaterial()">✔ Adicionar ao orçamento</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2><span class="ico">📝</span> Descrição dos serviços</h2>
+            <textarea id="descricao" placeholder="Uma linha por item. Ex.: Descupinização do imóvel com veneno Regente BASF."></textarea>
+            <div class="grid" style="margin-top:14px">
+              <label>Forma de pagamento <input id="pagamento" type="text"></label>
+              <label>Prazo de conclusão <input id="prazo" type="text"></label>
+              <label>Validade do orçamento <input id="validade" type="text" placeholder="Ex.: 10 dias"></label>
+            </div>
+          </section>
+        </div>
+
+        <aside class="resumo">
+          <section class="card">
+            <h2>Resumo</h2>
+            <div class="linha-res"><span>Serviços</span><b id="tot-servicos">R$ 0,00</b></div>
+            <div class="linha-res"><span>Produtos</span><b id="tot-produtos">R$ 0,00</b></div>
+            <div class="linha-res" style="border:none"><span>Itens</span><b id="qtd-itens">0</b></div>
+            <div class="total-destaque">
+              <small>Total geral</small>
+              <div class="valor" id="tot-geral">R$ 0,00</div>
+            </div>
+            <div class="barra"><div id="barra-servicos"></div></div>
+            <div class="legenda" id="legenda-barra">Serviços e produtos</div>
+          </section>
+          <section class="card nao-imprimir">
+            <h2>Situação</h2>
+            <div id="status-atual" style="margin-bottom:12px"></div>
+            <div class="acoes" style="flex-direction:column">
+              <button class="btn verde" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
+              <button class="btn claro" onclick="window.print()">🖨 Imprimir / PDF</button>
+              <button class="btn cinza" onclick="novoOrcamento()">↺ Novo orçamento</button>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // =====================================================
+  //  UTILIDADES
+  // =====================================================
+  const CLASSE_STATUS = { 'Em Orçamento': 'st-em', 'Aprovado': 'st-apr', 'Agendado': 'st-ag', 'Concluído': 'st-con' };
+  const API = '/api/orcamentos';
+
+  let orcamentos = [];
+  let editandoId = null;
+  let contadorLinhas = 0;
+  let filtroAtual = 'Todos';
+  let modoCalc = 'qtd';
+  let qtdCalc = 0;
+
+  function num(valor) {
+    if (typeof valor === 'number') return valor;
+    if (!valor) return 0;
+    const n = parseFloat(String(valor).replace(/\./g, '').replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+  function fmt(valor) { return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function moeda(valor) { return 'R$ ' + fmt(valor); }
+  function hoje() { return new Date().toISOString().slice(0, 10); }
+  function dataBR(iso) { if (!iso) return '—'; const [a, m, d] = iso.split('-'); return `${d}/${m}/${a}`; }
+  function dataCurta(iso) {
+    if (!iso) return { dia: '--', mes: '---' };
+    const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+    const [, m, d] = iso.split('-');
+    return { dia: d, mes: meses[parseInt(m, 10) - 1] };
+  }
+  function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function v(id) { return document.getElementById(id).value; }
+  function definir(id, valor) { document.getElementById(id).value = valor ?? ''; }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visivel');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('visivel'), 2800);
+  }
+
+  function badge(status) { return `<span class="st ${CLASSE_STATUS[status] || 'st-em'}">${esc(status)}</span>`; }
+
+  function totais(itens) {
+    let servicos = 0, produtos = 0;
+    (itens || []).forEach(i => {
+      const t = Math.max(0, (i.preco || 0) * (i.qtd || 0) - (i.desconto || 0));
+      if (i.tipo === 'Serviço') servicos += t; else produtos += t;
+    });
+    return { servicos, produtos, geral: servicos + produtos };
+  }
+
+  function setSync(estado, texto) {
+    const el = document.getElementById('sync');
+    el.className = 'sync ' + estado;
+    el.textContent = texto;
+  }
+
+  // =====================================================
+  //  COMUNICAÇÃO COM O BANCO (API)
+  // =====================================================
+  function senhaSalva() { return localStorage.getItem('jv_senha') || ''; }
+
+  async function api(metodo, corpo, query = '') {
+    const res = await fetch(API + query, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json', 'x-senha': senhaSalva() },
+      body: corpo ? JSON.stringify(corpo) : undefined
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('jv_senha');
+      mostrarLogin('Senha incorreta ou sessão expirada.');
+      throw new Error('nao-autorizado');
+    }
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.erro || 'Erro ao comunicar com o servidor');
+    return json;
+  }
+
+  async function carregar() {
+    setSync('salvando', 'Carregando…');
+    orcamentos = await api('GET');
+    setSync('ok', 'Conectado · ' + orcamentos.length + ' orçamento(s)');
+  }
+
+  async function salvarRegistro(o) {
+    setSync('salvando', 'Salvando…');
+    try {
+      await api('POST', o);
+      setSync('ok', 'Salvo no banco');
+    } catch (err) {
+      setSync('erro', 'Erro ao salvar');
+      throw err;
+    }
+  }
+
+  async function excluirRegistro(id) {
+    setSync('salvando', 'Excluindo…');
+    try {
+      await api('DELETE', null, '?id=' + encodeURIComponent(id));
+      setSync('ok', 'Salvo no banco');
+    } catch (err) {
+      setSync('erro', 'Erro ao excluir');
+      throw err;
+    }
+  }
+
+  // =====================================================
+  //  LOGIN
+  // =====================================================
+  function mostrarLogin(msg) {
+    document.getElementById('login').classList.add('visivel');
+    document.getElementById('login-erro').textContent = msg || '';
+    setTimeout(() => document.getElementById('senha-input').focus(), 50);
+  }
+
+  async function entrar() {
+    const s = document.getElementById('senha-input').value.trim();
+    if (!s) { document.getElementById('login-erro').textContent = 'Digite a senha.'; return; }
+    localStorage.setItem('jv_senha', s);
+    try {
+      await carregar();
+      document.getElementById('login').classList.remove('visivel');
+      document.getElementById('senha-input').value = '';
+      atualizarTudo();
+      mostrarTela('dashboard');
+    } catch (err) {
+      if (err.message !== 'nao-autorizado') toast('⚠ ' + err.message);
+    }
+  }
+
+  function sair() {
+    if (!confirm('Sair deste computador? Será preciso digitar a senha de novo.')) return;
+    localStorage.removeItem('jv_senha');
+    orcamentos = [];
+    mostrarLogin('');
+  }
+
+  // =====================================================
+  //  NAVEGAÇÃO
+  // =====================================================
+  function mostrarTela(nome) {
+    document.querySelectorAll('.view').forEach(sec => sec.classList.toggle('ativa', sec.id === 'view-' + nome));
+    document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.toggle('ativo', b.dataset.view === nome));
+    if (nome === 'dashboard') renderDashboard();
+    if (nome === 'lista') renderLista();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function atualizarMenu() { document.getElementById('n-todos').textContent = orcamentos.length; }
+
+  function atualizarTudo() {
+    atualizarMenu();
+    const ativa = document.querySelector('.view.ativa');
+    if (ativa && ativa.id === 'view-dashboard') renderDashboard();
+    if (ativa && ativa.id === 'view-lista') renderLista();
+  }
+
+  // =====================================================
+  //  PAINEL
+  // =====================================================
+  function renderDashboard() {
+    const grupo = s => orcamentos.filter(o => o.status === s);
+    const soma = lista => lista.reduce((a, o) => a + totais(o.itens).geral, 0);
+    const emOrc = grupo('Em Orçamento'), ag = grupo('Agendado'), con = grupo('Concluído'), apr = grupo('Aprovado');
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat" style="--cor:#f59e0b">
+        <div class="rot">Em orçamento</div>
+        <div class="num">${emOrc.length}</div>
+        <div class="sub">${moeda(soma(emOrc))} em negociação</div>
+      </div>
+      <div class="stat" style="--cor:#3b82f6">
+        <div class="rot">Agendados</div>
+        <div class="num">${ag.length}</div>
+        <div class="sub">${moeda(soma(ag))} a executar${apr.length ? ` · ${apr.length} aprovado(s)` : ''}</div>
+      </div>
+      <div class="stat" style="--cor:#16a34a">
+        <div class="rot">Concluídos</div>
+        <div class="num">${con.length}</div>
+        <div class="sub">${moeda(soma(con))} faturado</div>
+      </div>
+      <div class="stat" style="--cor:#7c3aed">
+        <div class="rot">Total de orçamentos</div>
+        <div class="num">${orcamentos.length}</div>
+        <div class="sub">Desde o início</div>
+      </div>`;
+
+    const proximos = [...ag].sort((a, b) => (a.dataAgendada || '9999').localeCompare(b.dataAgendada || '9999')).slice(0, 6);
+    document.getElementById('lista-agendados').innerHTML = proximos.length ? proximos.map(o => {
+      const d = dataCurta(o.dataAgendada);
+      return `
+        <div class="item-lista">
+          <div class="data-caixa"><b>${d.dia}</b><small>${d.mes}</small></div>
+          <div class="info"><b>${esc(o.cliente)}</b><small>${esc(o.endereco) || 'Sem endereço'} · nº ${esc(o.numero)}</small></div>
+          <div class="valor">${moeda(totais(o.itens).geral)}</div>
+          <button class="btn claro pequeno" onclick="editarOrcamento('${o.id}')">Abrir</button>
+        </div>`;
+    }).join('') : `<div class="vazio"><div class="grande">📅</div>Nenhum serviço agendado.<br><small>Mude o status de um orçamento para "Agendado" e escolha a data.</small></div>`;
+
+    const recentes = [...orcamentos].sort((a, b) => (b.atualizadoEm || '').localeCompare(a.atualizadoEm || '')).slice(0, 6);
+    document.getElementById('lista-recentes').innerHTML = recentes.length ? recentes.map(o => `
+        <div class="item-lista">
+          <div class="info"><b>${esc(o.cliente)}</b><small>nº ${esc(o.numero)} · atualizado em ${dataBR((o.atualizadoEm || '').slice(0, 10))}</small></div>
+          ${badge(o.status)}
+          <button class="btn claro pequeno" onclick="editarOrcamento('${o.id}')">Abrir</button>
+        </div>`).join('') : `<div class="vazio">Nenhum orçamento ainda.</div>`;
+  }
+
+  // =====================================================
+  //  LISTA
+  // =====================================================
+  function renderChips() {
+    const filtros = ['Todos', 'Em Orçamento', 'Aprovado', 'Agendado', 'Concluído'];
+    document.getElementById('chips').innerHTML = filtros.map(f => {
+      const n = f === 'Todos' ? orcamentos.length : orcamentos.filter(o => o.status === f).length;
+      return `<button class="chip ${filtroAtual === f ? 'ativo' : ''}" onclick="filtrar('${f}')">${f}<span>${n}</span></button>`;
+    }).join('');
+  }
+
+  function filtrar(f) { filtroAtual = f; renderLista(); }
+
+  function renderLista() {
+    renderChips();
+    const termo = v('busca').trim().toLowerCase();
+    const lista = orcamentos
+      .filter(o => (filtroAtual === 'Todos' || o.status === filtroAtual) &&
+                   (!termo || `${o.cliente} ${o.endereco} ${o.numero}`.toLowerCase().includes(termo)))
+      .sort((a, b) => (parseInt(b.numero) || 0) - (parseInt(a.numero) || 0));
+
+    const tbody = document.getElementById('tbody-lista');
+    if (!lista.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="vazio"><div class="grande">🗂️</div>Nenhum orçamento nesta categoria.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = lista.map(o => {
+      const tot = totais(o.itens).geral;
+      const concluir = o.status !== 'Concluído'
+        ? `<button class="btn verde pequeno" onclick="alterarStatus('${o.id}','Concluído')">✔ Concluir</button>` : '';
+      return `
+        <tr class="linha">
+          <td><b>${esc(o.numero)}</b></td>
+          <td class="cliente"><b>${esc(o.cliente)}</b><small>${esc(o.endereco) || '—'}</small></td>
+          <td>${badge(o.status)}</td>
+          <td>${dataBR(o.dataAgendada)}</td>
+          <td>${dataBR((o.criadoEm || '').slice(0, 10))}</td>
+          <td class="num"><b>${moeda(tot)}</b></td>
+          <td>
+            <div class="acoes-linha">
+              <button class="btn claro pequeno" onclick="editarOrcamento('${o.id}')">Abrir</button>
+              ${concluir}
+              <button class="btn claro pequeno" title="Duplicar" onclick="duplicarOrcamento('${o.id}')">⧉</button>
+              <button class="btn perigo pequeno" title="Excluir" onclick="excluirOrcamento('${o.id}')">🗑</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function alterarStatus(id, novo) {
+    const o = orcamentos.find(x => x.id === id);
+    if (!o) return;
+    if (novo === 'Agendado' && !o.dataAgendada) {
+      editarOrcamento(id);
+      definir('status', 'Agendado');
+      ajustarStatus();
+      document.getElementById('dataAgendada').focus();
+      toast('Escolha a data do agendamento');
+      return;
+    }
+    const copia = { ...o, status: novo, atualizadoEm: new Date().toISOString() };
+    if (novo === 'Concluído') copia.dataConclusao = o.dataConclusao || hoje();
+    try {
+      await salvarRegistro(copia);
+      Object.assign(o, copia);
+      atualizarTudo();
+      toast(`✔ Status alterado para "${novo}"`);
+    } catch (err) { toast('⚠ ' + err.message); }
+  }
+
+  async function excluirOrcamento(id) {
+    const o = orcamentos.find(x => x.id === id);
+    if (!o) return;
+    if (!confirm(`Excluir o orçamento nº ${o.numero} de ${o.cliente}? Essa ação não pode ser desfeita.`)) return;
+    try {
+      await excluirRegistro(id);
+      orcamentos = orcamentos.filter(x => x.id !== id);
+      atualizarTudo();
+      toast('Orçamento excluído');
+    } catch (err) { toast('⚠ ' + err.message); }
+  }
+
+  async function duplicarOrcamento(id) {
+    const o = orcamentos.find(x => x.id === id);
+    if (!o) return;
+    const agora = new Date().toISOString();
+    const copia = {
+      ...JSON.parse(JSON.stringify(o)),
+      id: 'b' + Date.now(), numero: proximoNumero(), status: 'Em Orçamento',
+      dataAgendada: '', dataConclusao: '', data: hoje(), criadoEm: agora, atualizadoEm: agora
+    };
+    try {
+      await salvarRegistro(copia);
+      orcamentos.push(copia);
+      atualizarTudo();
+      toast(`✔ Cópia criada como nº ${copia.numero}`);
+    } catch (err) { toast('⚠ ' + err.message); }
+  }
+
+  function proximoNumero() {
+    const maior = orcamentos.reduce((m, o) => Math.max(m, parseInt(o.numero) || 0), 0);
+    return Math.max(maior, 677) + 1;
+  }
+
+  // =====================================================
+  //  EDITOR
+  // =====================================================
+  function ajustarStatus() {
+    const s = v('status');
+    document.getElementById('status-atual').innerHTML = badge(s);
+    const campo = document.getElementById('dataAgendada');
+    campo.style.borderColor = (s === 'Agendado' && !campo.value) ? 'var(--amarelo)' : '';
+  }
+
+  function novoOrcamento() {
+    const temItens = document.querySelectorAll('#itens tr').length > 0;
+    if (temItens && editandoId === null && !confirm('Descartar o orçamento atual que ainda não foi salvo?')) return;
+
+    editandoId = null;
+    const ultimo = [...orcamentos].sort((a, b) => (parseInt(b.numero) || 0) - (parseInt(a.numero) || 0))[0];
+    limparFormulario();
+    definir('numero', proximoNumero());
+    definir('data', hoje());
+    if (ultimo) {
+      definir('vendedor', ultimo.vendedor);
+      definir('pagamento', ultimo.pagamento);
+      definir('prazo', ultimo.prazo);
+      definir('validade', ultimo.validade);
+    }
+    definir('status', 'Em Orçamento');
+    document.getElementById('titulo-editor').textContent = 'Novo orçamento';
+    document.getElementById('subtitulo-editor').textContent = 'Preencha os dados e salve para acompanhar na gestão';
+    ajustarStatus();
+    mostrarTela('editor');
+    document.getElementById('cliente').focus();
+  }
+
+  function limparFormulario() {
+    ['cliente', 'contato', 'endereco', 'vendedor', 'pagamento', 'prazo', 'validade', 'descricao', 'dataAgendada', 'data', 'numero']
+      .forEach(id => definir(id, ''));
+    document.getElementById('itens').innerHTML = '';
+    recalcular();
+  }
+
+  function editarOrcamento(id) {
+    const o = orcamentos.find(x => x.id === id);
+    if (!o) return;
+    editandoId = id;
+    definir('numero', o.numero);
+    definir('status', o.status);
+    definir('dataAgendada', o.dataAgendada);
+    definir('data', o.data);
+    definir('cliente', o.cliente);
+    definir('contato', o.contato);
+    definir('endereco', o.endereco);
+    definir('vendedor', o.vendedor);
+    definir('pagamento', o.pagamento);
+    definir('prazo', o.prazo);
+    definir('validade', o.validade);
+    definir('descricao', o.descricao);
+
+    document.getElementById('itens').innerHTML = '';
+    (o.itens || []).forEach(i => adicionarLinha(i.tipo, { desc: i.desc, preco: i.preco, qtd: i.qtd, desconto: i.desconto }, true));
+    recalcular();
+
+    document.getElementById('titulo-editor').textContent = `Orçamento nº ${o.numero}`;
+    document.getElementById('subtitulo-editor').textContent = `Cliente: ${o.cliente}`;
+    ajustarStatus();
+    mostrarTela('editor');
+  }
+
+  function coletarFormulario() {
+    const itens = [...document.querySelectorAll('#itens tr')].map(tr => ({
+      tipo: tr.querySelector('.tipo').value,
+      desc: tr.querySelector('.desc').value.trim(),
+      preco: num(tr.querySelector('.preco').value),
+      qtd: num(tr.querySelector('.qtd').value),
+      desconto: num(tr.querySelector('.desconto').value)
+    })).filter(i => i.desc || i.preco);
+
+    return {
+      numero: parseInt(v('numero')) || 0,
+      status: v('status'),
+      dataAgendada: v('dataAgendada'),
+      data: v('data'),
+      cliente: v('cliente').trim(),
+      contato: v('contato').trim(),
+      endereco: v('endereco').trim(),
+      vendedor: v('vendedor').trim(),
+      pagamento: v('pagamento').trim(),
+      prazo: v('prazo').trim(),
+      validade: v('validade').trim(),
+      descricao: v('descricao'),
+      itens
+    };
+  }
+
+  async function salvarOrcamento() {
+    const dados = coletarFormulario();
+
+    if (!dados.cliente) { toast('⚠ Informe o nome do cliente'); document.getElementById('cliente').focus(); return; }
+    if (!dados.itens.length) { toast('⚠ Adicione pelo menos um item'); return; }
+    if (dados.status === 'Agendado' && !dados.dataAgendada) {
+      toast('⚠ Escolha a data do agendamento');
+      document.getElementById('dataAgendada').focus();
+      return;
+    }
+    if (!dados.numero) dados.numero = proximoNumero();
+
+    const repetido = orcamentos.find(o => o.numero === dados.numero && o.id !== editandoId);
+    if (repetido) { toast(`⚠ O nº ${dados.numero} já existe. Escolha outro número.`); return; }
+
+    const agora = new Date().toISOString();
+    const anterior = editandoId ? orcamentos.find(o => o.id === editandoId) : null;
+    const registro = {
+      ...(anterior || {}),
+      ...dados,
+      id: anterior ? anterior.id : 'b' + Date.now(),
+      dataConclusao: dados.status === 'Concluído' ? ((anterior && anterior.dataConclusao) || hoje()) : '',
+      criadoEm: anterior ? anterior.criadoEm : agora,
+      atualizadoEm: agora
+    };
+
+    const btn = document.getElementById('btn-salvar-topo');
+    btn.disabled = true;
+    try {
+      await salvarRegistro(registro);
+      if (anterior) Object.assign(anterior, registro);
+      else orcamentos.push(registro);
+      editandoId = registro.id;
+      document.getElementById('titulo-editor').textContent = `Orçamento nº ${dados.numero}`;
+      document.getElementById('subtitulo-editor').textContent = `Cliente: ${dados.cliente}`;
+      atualizarTudo();
+      toast('✔ Orçamento salvo com sucesso');
+    } catch (err) {
+      toast('⚠ ' + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- itens ----------
+  function adicionarLinha(tipo, dados, silencioso) {
+    dados = dados || {};
+    const id = ++contadorLinhas;
+    const tr = document.createElement('tr');
+    tr.className = 'nova';
+    tr.dataset.id = id;
+    const ehServico = tipo === 'Serviço';
+    tr.innerHTML = `
+      <td>
+        <select class="tipo tipo-sel" onchange="recalcular()">
+          <option ${ehServico ? 'selected' : ''}>Serviço</option>
+          <option ${!ehServico ? 'selected' : ''}>Produto</option>
+        </select>
+      </td>
+      <td><input class="desc" type="text" value="${esc(dados.desc)}" placeholder="Descrição"></td>
+      <td><input class="preco num" type="text" inputmode="decimal" value="${dados.preco !== undefined ? fmt(dados.preco) : ''}" oninput="recalcular()"></td>
+      <td><input class="qtd num" type="text" inputmode="decimal" value="${dados.qtd !== undefined ? dados.qtd : (ehServico ? 1 : '')}" oninput="recalcular()"></td>
+      <td><input class="desconto num" type="text" inputmode="decimal" value="${dados.desconto ? fmt(dados.desconto) : ''}" placeholder="0,00" oninput="recalcular()"></td>
+      <td class="num total-linha">R$ 0,00</td>
+      <td><button class="btn-x" title="Remover item" onclick="removerLinha(${id})">✕</button></td>`;
+    document.getElementById('itens').appendChild(tr);
+    recalcular();
+    if (!silencioso) {
+      tr.querySelector('.desc').focus();
+      toast(ehServico ? '✔ Serviço adicionado' : '✔ Produto adicionado');
+    }
+    return tr;
+  }
+
+  function removerLinha(id) {
+    const tr = document.querySelector(`#itens tr[data-id="${id}"]`);
+    if (!tr) return;
+    tr.style.transition = 'opacity .25s, transform .25s';
+    tr.style.opacity = '0';
+    tr.style.transform = 'translateX(20px)';
+    setTimeout(() => { tr.remove(); recalcular(); }, 250);
+    toast('Item removido');
+  }
+
+  function recalcular() {
+    let servicos = 0, produtos = 0, qtd = 0;
+    document.querySelectorAll('#itens tr').forEach(tr => {
+      const tipo = tr.querySelector('.tipo').value;
+      const preco = num(tr.querySelector('.preco').value);
+      const q = num(tr.querySelector('.qtd').value);
+      const desconto = num(tr.querySelector('.desconto').value);
+      const total = Math.max(0, preco * q - desconto);
+      tr.querySelector('.total-linha').textContent = moeda(total);
+      const sel = tr.querySelector('.tipo');
+      sel.style.background = tipo === 'Serviço' ? '#dbeafe' : '#dcfce7';
+      sel.style.color = tipo === 'Serviço' ? '#1e3a8a' : '#166534';
+      if (tipo === 'Serviço') servicos += total; else produtos += total;
+      qtd++;
+    });
+    const geral = servicos + produtos;
+    document.getElementById('tot-servicos').textContent = moeda(servicos);
+    document.getElementById('tot-produtos').textContent = moeda(produtos);
+    document.getElementById('tot-geral').textContent = moeda(geral);
+    document.getElementById('qtd-itens').textContent = qtd;
+    document.getElementById('vazio-itens').style.display = qtd ? 'none' : 'block';
+    const pct = geral > 0 ? (servicos / geral) * 100 : 0;
+    document.getElementById('barra-servicos').style.width = pct + '%';
+    document.getElementById('legenda-barra').textContent =
+      geral > 0 ? `${Math.round(pct)}% serviços · ${Math.round(100 - pct)}% produtos` : 'Serviços e produtos';
+  }
+
+  // ---------- calculadora de materiais ----------
+  function trocarModo(modo) {
+    modoCalc = modo;
+    document.getElementById('aba-qtd').classList.toggle('ativa', modo === 'qtd');
+    document.getElementById('aba-area').classList.toggle('ativa', modo === 'area');
+    document.getElementById('modo-qtd').classList.toggle('ativo', modo === 'qtd');
+    document.getElementById('modo-area').classList.toggle('ativo', modo === 'area');
+    document.getElementById('dica-modo').textContent = modo === 'qtd'
+      ? 'Ex.: 8 caixas × R$ 50,00 = R$ 400,00.'
+      : 'Ex.: 42 m² ÷ 18 m² por caixa = 3 caixas (arredonda para cima).';
+    calcMaterial();
+  }
+
+  function calcMaterial() {
+    const preco = num(v('c-preco'));
+    const desc = num(v('c-desc'));
+    const unidade = v('c-unidade').toLowerCase();
+    const out = document.getElementById('c-resultado');
+
+    let qtd = 0, obs = '';
+    if (modoCalc === 'qtd') {
+      qtd = num(v('c-qtd'));
+    } else {
+      const area = num(v('c-area'));
+      const rend = num(v('c-rend'));
+      if (area > 0 && rend > 0) {
+        qtd = Math.ceil(area / rend);
+        obs = `<br><small>${fmt(area)} m² ÷ ${fmt(rend)} m² por ${unidade} = ${(area / rend).toFixed(2)} → arredondado para ${qtd}</small>`;
+      }
+    }
+    qtdCalc = qtd;
+
+    if (qtd > 0 && preco > 0) {
+      const total = Math.max(0, qtd * preco - desc);
+      let texto = `<b>${qtd} ${unidade}${qtd > 1 ? 's' : ''}</b> × ${moeda(preco)}`;
+      if (desc > 0) texto += ` − ${moeda(desc)} de desconto`;
+      texto += ` = <b>${moeda(total)}</b>`;
+      out.innerHTML = texto + obs;
+    } else {
+      out.innerHTML = '<small>Preencha os campos para ver o cálculo.</small>';
+    }
+  }
+
+  function enviarMaterial() {
+    const nome = v('c-nome').trim();
+    const preco = num(v('c-preco'));
+    const desc = num(v('c-desc'));
+    const unidade = v('c-unidade');
+    if (!nome || qtdCalc <= 0 || preco <= 0) {
+      toast('⚠ Preencha nome, preço e quantidade (ou área + rendimento)');
+      return;
+    }
+    adicionarLinha('Produto', { desc: `${nome} (${unidade})`, preco, qtd: qtdCalc, desconto: desc }, true);
+    recalcular();
+    toast(`✔ ${nome} adicionado ao orçamento`);
+    ['c-nome', 'c-preco', 'c-qtd', 'c-area', 'c-rend', 'c-desc'].forEach(id => definir(id, ''));
+    qtdCalc = 0;
+    calcMaterial();
+  }
+
+  // =====================================================
+  //  BACKUP
+  // =====================================================
+  function exportarBackup() {
+    const blob = new Blob([JSON.stringify(orcamentos, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup-orcamentos-JV-${hoje()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('✔ Backup exportado');
+  }
+
+  function importarBackup(event) {
+    const arquivo = event.target.files[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onload = async e => {
+      try {
+        const dados = JSON.parse(e.target.result);
+        if (!Array.isArray(dados)) throw new Error('Arquivo de backup inválido');
+        const ids = new Set(orcamentos.map(o => o.id));
+        let novos = 0;
+        for (const o of dados) {
+          if (o && o.id && !ids.has(o.id)) {
+            await salvarRegistro(o);
+            orcamentos.push(o);
+            novos++;
+          }
+        }
+        atualizarTudo();
+        toast(`✔ ${novos} orçamento(s) importado(s)`);
+      } catch (err) {
+        toast('⚠ ' + (err.message || 'Arquivo de backup inválido'));
+      }
+      event.target.value = '';
+    };
+    leitor.readAsText(arquivo);
+  }
+
+  // =====================================================
+  //  INÍCIO
+  // =====================================================
+  window.addEventListener('load', async () => {
+    if (!senhaSalva()) { mostrarLogin(''); return; }
+    try {
+      await carregar();
+      atualizarTudo();
+      mostrarTela('dashboard');
+    } catch (err) {
+      if (err.message !== 'nao-autorizado') {
+        setSync('erro', 'Sem conexão com o banco');
+        toast('⚠ ' + err.message);
+        mostrarTela('dashboard');
+      }
+    }
+  });
+</script>
+</body>
+</html>
