@@ -178,23 +178,6 @@
     .busca input { width: 100%; }
   }
 
-  /* ---------- impressão ---------- */
-  @media print {
-    body { background: #fff; }
-    .app { display: block; }
-    aside.sidebar, .nao-imprimir, #toast, #login { display: none !important; }
-    main.conteudo { padding: 0; }
-    .view { display: none !important; }
-    #view-editor { display: block !important; animation: none; }
-    .card { box-shadow: none; border: none; padding: 0; margin-bottom: 14px; }
-    .card h2 .ico { display: none; }
-    input, select, textarea { border: none !important; padding: 2px !important; background: transparent; box-shadow: none !important; }
-    .resumo { position: static; }
-    .editor-grid { display: block; }
-    .total-destaque, th, .st, .barra > div { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .tabela-wrap { border: none; }
-    table { min-width: 0; }
-  }
 </style>
 </head>
 <body>
@@ -310,7 +293,7 @@
         <div class="acoes nao-imprimir">
           <button class="btn claro" onclick="mostrarTela('lista')">← Voltar</button>
           <button class="btn verde" id="btn-salvar-topo" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
-          <button class="btn claro" onclick="window.print()">🖨 Imprimir / PDF</button>
+          <button class="btn claro" onclick="gerarOrcamentoWord()">📄 Gerar orçamento (Word)</button>
         </div>
       </div>
 
@@ -420,7 +403,7 @@
             <div id="status-atual" style="margin-bottom:12px"></div>
             <div class="acoes" style="flex-direction:column">
               <button class="btn verde" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
-              <button class="btn claro" onclick="window.print()">🖨 Imprimir / PDF</button>
+              <button class="btn claro" onclick="gerarOrcamentoWord()">📄 Gerar orçamento (Word)</button>
               <button class="btn cinza" onclick="novoOrcamento()">↺ Novo orçamento</button>
             </div>
           </section>
@@ -433,6 +416,8 @@
 
 <div id="toast"></div>
 
+<script src="/vendor/pizzip.min.js"></script>
+<script src="/vendor/docxtemplater.min.js"></script>
 <script>
   // =====================================================
   //  UTILIDADES
@@ -1051,6 +1036,94 @@
       event.target.value = '';
     };
     leitor.readAsText(arquivo);
+  }
+
+
+  // =====================================================
+  //  ORÇAMENTO EM WORD (usa o modelo oficial da empresa)
+  // =====================================================
+  const MODELO_URL = '/modelo/Orcamento_JV_modelo.docx';
+  const MIN_LINHAS_TABELA = 5; // mantém as linhas em branco do modelo
+  let modeloCache = null;
+
+  async function carregarModelo() {
+    if (!modeloCache) {
+      const resp = await fetch(MODELO_URL);
+      if (!resp.ok) throw new Error('modelo do orçamento não encontrado');
+      modeloCache = await resp.arrayBuffer();
+    }
+    return modeloCache;
+  }
+
+  async function gerarOrcamentoWord() {
+    const d = coletarFormulario();
+    if (!d.cliente) { toast('⚠ Informe o nome do cliente'); document.getElementById('cliente').focus(); return; }
+    if (!d.itens.length) { toast('⚠ Adicione pelo menos um item antes de gerar'); return; }
+
+    try {
+      const modelo = await carregarModelo();
+      const doc = new window.docxtemplater(new window.PizZip(modelo), { paragraphLoop: true, linebreaks: true });
+
+      const t = totais(d.itens);
+      const descServ = d.itens.filter(i => i.tipo === 'Serviço').reduce((a, i) => a + (i.desconto || 0), 0);
+      const descProd = d.itens.filter(i => i.tipo === 'Produto').reduce((a, i) => a + (i.desconto || 0), 0);
+
+      const linhas = d.itens.map(i => ({
+        tipo: i.tipo,
+        desc: i.desc,
+        preco: fmt(i.preco || 0),
+        qtd: String(i.qtd ?? ''),
+        desconto: i.desconto ? fmt(i.desconto) : '',
+        total: fmt(Math.max(0, (i.preco || 0) * (i.qtd || 0) - (i.desconto || 0)))
+      }));
+      while (linhas.length < MIN_LINHAS_TABELA) {
+        linhas.push({ tipo: '', desc: '', preco: '', qtd: '', desconto: '', total: '' });
+      }
+
+      const descricao = d.descricao.split('\n')
+        .map(l => l.replace(/^\s*[-•]\s*/, '').trim())
+        .filter(Boolean)
+        .map(l => '- ' + l)
+        .join('\n');
+
+      doc.render({
+        numero: String(d.numero),
+        cliente: d.cliente,
+        contato: d.contato,
+        endereco: d.endereco,
+        data: dataBR(d.data),
+        status: d.status,
+        vendedor: d.vendedor,
+        linhas,
+        descServ: fmt(descServ),
+        descProd: fmt(descProd),
+        descTotal: fmt(descServ + descProd),
+        totServ: fmt(t.servicos),
+        totProd: fmt(t.produtos),
+        totGeral: fmt(t.geral),
+        descricao,
+        pagamento: (d.pagamento || '').toUpperCase(),
+        prazo: (d.prazo || '').toUpperCase(),
+        validade: (d.validade || '').toUpperCase()
+      });
+
+      const arquivo = doc.getZip().generate({
+        type: 'blob',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      const nome = `Orçamento ${d.numero} - ${d.cliente}.docx`.replace(/[\\/:*?"<>|]/g, '');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(arquivo);
+      a.download = nome;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast('✔ Orçamento Word gerado. Abra o arquivo para imprimir ou salvar em PDF.');
+    } catch (err) {
+      console.error(err);
+      toast('⚠ Erro ao gerar o orçamento: ' + (err.message || err));
+    }
   }
 
   // =====================================================
