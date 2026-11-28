@@ -178,6 +178,122 @@
     .busca input { width: 100%; }
   }
 
+
+  /* ================= MELHORIAS DE LEITURA E INTERAÇÃO ================= */
+  :root { --escala: 1; }
+  #view-editor label { font-size: calc(13px * var(--escala)); }
+  #view-editor .grid input, #view-editor .grid select, #view-editor #descricao {
+    font-size: calc(16px * var(--escala)); padding: 12px 14px; min-height: 48px;
+  }
+  #view-editor #descricao { min-height: 140px; line-height: 1.6; }
+  #view-editor .card { transition: box-shadow .25s, transform .25s; }
+  #view-editor .card:hover { box-shadow: 0 16px 40px -18px rgba(15,23,42,.28); }
+  #view-editor .tabela-wrap { max-height: 64vh; overflow: auto; }
+  #view-editor thead th { position: sticky; top: 0; z-index: 2; font-size: calc(12px * var(--escala)); padding: 14px 12px; }
+  #view-editor .tabela-itens { min-width: 660px; }
+  #view-editor td { padding: 12px 10px; }
+  #view-editor td input, #view-editor td select {
+    font-size: calc(16px * var(--escala)); padding: 12px; min-height: 48px; border-radius: 10px;
+  }
+  #view-editor td input.num { text-align: right; font-variant-numeric: tabular-nums; }
+  #view-editor td select.tipo { font-size: calc(15px * var(--escala)); cursor: pointer; width: 100%; padding-right: 6px; }
+  #view-editor textarea.desc {
+    width: 100%; min-height: 48px; resize: none; overflow: hidden; line-height: 1.45;
+    font-size: calc(16px * var(--escala)); padding: 12px; border-radius: 10px; border: 1.5px solid var(--borda);
+  }
+  #view-editor textarea.desc:focus { border-color: var(--azul2); box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+  #view-editor .total-linha { font-size: calc(17px * var(--escala)); }
+  tr.linha-item { transition: background .2s, box-shadow .2s; }
+  tr.linha-item:hover { background: #f8fafc; }
+  tr.linha-item:focus-within { background: #eff6ff; box-shadow: inset 4px 0 0 var(--azul2); }
+  #view-editor .btn { font-size: calc(14px * var(--escala)); padding: 12px 20px; }
+  #view-editor .btn-x { width: 40px; height: 40px; font-size: 15px; }
+  .pulso { animation: pulso .5s ease; }
+  @keyframes pulso { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  .zoom-texto { display: inline-flex; align-items: center; gap: 4px; background: #fff; border: 1.5px solid var(--borda); border-radius: 12px; padding: 4px; box-shadow: var(--sombra); }
+  .zoom-texto button { border: none; background: transparent; width: 40px; height: 36px; border-radius: 8px; cursor: pointer; font-weight: 700; color: var(--azul); font-size: 14px; font-family: inherit; }
+  .zoom-texto button:hover { background: #eff6ff; }
+  .zoom-texto span { min-width: 52px; text-align: center; font-size: 13px; font-weight: 700; color: var(--suave); }
+  #view-editor .resumo .card { padding: 22px; }
+  /* resumo no topo, em faixa horizontal, e itens com a largura toda */
+  #view-editor .editor-grid { grid-template-columns: minmax(0, 1fr); }
+  #view-editor .resumo { order: -1; position: static; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 4px; }
+  #view-editor .resumo .card { margin-bottom: 0; }
+  #view-editor .resumo .total-destaque { margin-top: 0; }
+  @media (max-width: 860px) { #view-editor .resumo { grid-template-columns: minmax(0, 1fr); } }
+  #view-editor .total-destaque .valor { font-size: 32px; }
+  @media (max-width: 860px) {
+    #view-editor .grid input, #view-editor .grid select { font-size: 16px; }
+  }
+
+  /* ================= VERSÃO CELULAR ================= */
+  @media (max-width: 720px) {
+    main.conteudo { padding: 14px; }
+    .cabec { margin-bottom: 16px; }
+    .cabec h1 { font-size: 20px; }
+    .card { padding: 16px; border-radius: 14px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat { padding: 14px; }
+    .stat .num { font-size: 20px; }
+    .stat .sub { font-size: 11px; }
+    .item-lista { flex-wrap: wrap; }
+    .item-lista .valor { width: 100%; padding-left: 64px; }
+
+    /* barra de navegação rolando na horizontal */
+    aside.sidebar { padding: 8px 10px; }
+    .menu { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .nav-btn { padding: 10px 12px; font-size: 13px; }
+
+    /* lista de orçamentos vira cartões */
+    #view-lista .barra-lista { flex-direction: column; align-items: stretch; }
+    #view-lista .busca input { width: 100%; }
+    #view-lista .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+    #view-lista .chip { flex-shrink: 0; }
+    #view-lista thead { display: none; }
+    #view-lista .tabela-wrap { border: none; background: transparent; overflow: visible; }
+    #view-lista table, #view-lista tbody { display: block; width: 100%; min-width: 0 !important; }
+    #view-lista tr.linha {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; background: #fff;
+      border: 1px solid var(--borda); border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: var(--sombra);
+    }
+    #view-lista tr.linha td { border: none; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    #view-lista tr.linha td::before { content: attr(data-label); font-size: 11px; color: var(--suave); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; }
+    #view-lista tr.linha td.cliente { grid-column: 1 / -1; }
+    #view-lista tr.linha td.acoes-cell { grid-column: 1 / -1; padding-top: 6px; border-top: 1px dashed var(--borda); }
+    #view-lista tr.linha td.acoes-cell::before { display: none; }
+    #view-lista .acoes-linha { justify-content: flex-start; }
+    #view-lista tr:not(.linha) { display: block; }
+
+    /* editor: cada item vira um cartão */
+    #view-editor .resumo { grid-template-columns: 1fr; }
+    #view-editor .resumo .total-destaque .valor { font-size: 28px; }
+    #view-editor .grid { grid-template-columns: 1fr; }
+    #view-editor thead { display: none; }
+    #view-editor .tabela-wrap { border: none; background: transparent; overflow: visible; max-height: none; }
+    #view-editor table, #view-editor tbody { display: block; width: 100%; min-width: 0 !important; }
+    #view-editor tr.linha-item {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; background: #fff;
+      border: 1px solid var(--borda); border-radius: 14px; padding: 14px; margin-bottom: 14px;
+      box-shadow: var(--sombra); position: relative;
+    }
+    #view-editor tr.linha-item td { border: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+    #view-editor tr.linha-item td::before { content: attr(data-label); font-size: 12px; color: var(--suave); font-weight: 600; }
+    #view-editor tr.linha-item td:nth-child(1) { grid-column: 1 / -1; }
+    #view-editor tr.linha-item td:nth-child(1) { padding-right: 46px; }
+    #view-editor tr.linha-item td:nth-child(2) { grid-column: 1 / -1; }
+    #view-editor tr.linha-item td.total-linha { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed var(--borda); }
+    #view-editor tr.linha-item td.total-linha::before { font-size: 13px; }
+    #view-editor tr.linha-item td.acao-x { position: absolute; top: 8px; right: 8px; padding: 0; flex-direction: row; }
+    #view-editor tr.linha-item td.acao-x .btn-x { width: 36px; height: 36px; }
+    #view-editor tr.linha-item td:nth-child(2) textarea.desc { padding-right: 46px; }
+    #view-editor tr.linha-item td input, #view-editor tr.linha-item td select { width: 100%; }
+    #view-editor tr.linha-item td input.num { text-align: left; }
+    #view-editor tr:not(.linha-item) { display: block; }
+    #view-editor .itens-acoes .btn { flex: 1; justify-content: center; }
+    #view-editor .cabec .acoes { width: 100%; }
+    #view-editor .cabec .acoes .btn, #view-editor .cabec .acoes .zoom-texto { flex: 1 1 auto; justify-content: center; }
+    #view-editor .botoes-finais .btn { width: 100%; justify-content: center; }
+  }
 </style>
 </head>
 <body>
@@ -292,6 +408,11 @@
         </div>
         <div class="acoes nao-imprimir">
           <button class="btn claro" onclick="mostrarTela('lista')">← Voltar</button>
+          <div class="zoom-texto" title="Tamanho do texto">
+            <button onclick="ajustarEscala(-0.1)" title="Diminuir texto">A−</button>
+            <span id="zoom-valor">100%</span>
+            <button onclick="ajustarEscala(0.1)" title="Aumentar texto">A+</button>
+          </div>
           <button class="btn verde" id="btn-salvar-topo" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
           <button class="btn claro" onclick="gerarOrcamentoWord()">📄 Gerar orçamento (Word)</button>
         </div>
@@ -323,12 +444,12 @@
               <table class="tabela-itens">
                 <thead>
                   <tr>
-                    <th style="width:120px">Tipo</th>
+                    <th style="width:128px">Tipo</th>
                     <th>Descrição</th>
-                    <th class="num" style="width:120px">Preço unit.</th>
-                    <th class="num" style="width:90px">Qtd.</th>
-                    <th class="num" style="width:120px">Desconto</th>
-                    <th class="num" style="width:130px">Total</th>
+                    <th class="num" style="width:118px">Preço unit.</th>
+                    <th class="num" style="width:74px">Qtd.</th>
+                    <th class="num" style="width:118px">Desconto</th>
+                    <th class="num" style="width:124px">Total</th>
                     <th style="width:50px"></th>
                   </tr>
                 </thead>
@@ -336,7 +457,7 @@
               </table>
             </div>
             <div id="vazio-itens" class="vazio" style="display:none">Nenhum item ainda. Adicione um serviço ou produto abaixo.</div>
-            <div class="acoes nao-imprimir" style="margin-top:14px">
+            <div class="acoes nao-imprimir itens-acoes" style="margin-top:14px">
               <button class="btn" onclick="adicionarLinha('Serviço')">＋ Adicionar serviço</button>
               <button class="btn" onclick="adicionarLinha('Produto')">＋ Adicionar produto</button>
             </div>
@@ -661,13 +782,13 @@
         ? `<button class="btn verde pequeno" onclick="alterarStatus('${o.id}','Concluído')">✔ Concluir</button>` : '';
       return `
         <tr class="linha">
-          <td><b>${esc(o.numero)}</b></td>
-          <td class="cliente"><b>${esc(o.cliente)}</b><small>${esc(o.endereco) || '—'}</small></td>
-          <td>${badge(o.status)}</td>
-          <td>${dataBR(o.dataAgendada)}</td>
-          <td>${dataBR((o.criadoEm || '').slice(0, 10))}</td>
-          <td class="num"><b>${moeda(tot)}</b></td>
-          <td>
+          <td data-label="Nº"><b>${esc(o.numero)}</b></td>
+          <td class="cliente" data-label="Cliente / Endereço"><b>${esc(o.cliente)}</b><small>${esc(o.endereco) || '—'}</small></td>
+          <td data-label="Status">${badge(o.status)}</td>
+          <td data-label="Agendado para">${dataBR(o.dataAgendada)}</td>
+          <td data-label="Criado em">${dataBR((o.criadoEm || '').slice(0, 10))}</td>
+          <td class="num" data-label="Total"><b>${moeda(tot)}</b></td>
+          <td class="acoes-cell">
             <div class="acoes-linha">
               <button class="btn claro pequeno" onclick="editarOrcamento('${o.id}')">Abrir</button>
               ${concluir}
@@ -876,23 +997,24 @@
     dados = dados || {};
     const id = ++contadorLinhas;
     const tr = document.createElement('tr');
-    tr.className = 'nova';
+    tr.className = 'nova linha-item';
     tr.dataset.id = id;
     const ehServico = tipo === 'Serviço';
     tr.innerHTML = `
-      <td>
+      <td data-label="Tipo">
         <select class="tipo tipo-sel" onchange="recalcular()">
           <option ${ehServico ? 'selected' : ''}>Serviço</option>
           <option ${!ehServico ? 'selected' : ''}>Produto</option>
         </select>
       </td>
-      <td><input class="desc" type="text" value="${esc(dados.desc)}" placeholder="Descrição"></td>
-      <td><input class="preco num" type="text" inputmode="decimal" value="${dados.preco !== undefined ? fmt(dados.preco) : ''}" oninput="recalcular()"></td>
-      <td><input class="qtd num" type="text" inputmode="decimal" value="${dados.qtd !== undefined ? dados.qtd : (ehServico ? 1 : '')}" oninput="recalcular()"></td>
-      <td><input class="desconto num" type="text" inputmode="decimal" value="${dados.desconto ? fmt(dados.desconto) : ''}" placeholder="0,00" oninput="recalcular()"></td>
-      <td class="num total-linha">R$ 0,00</td>
-      <td><button class="btn-x" title="Remover item" onclick="removerLinha(${id})">✕</button></td>`;
+      <td data-label="Descrição"><textarea class="desc" rows="1" placeholder="Descrição do serviço ou produto" oninput="ajustarAltura(this);recalcular()" onkeydown="teclaDesc(event,this)">${esc(dados.desc)}</textarea></td>
+      <td data-label="Preço unit."><input class="preco num" type="text" inputmode="decimal" onfocus="this.select()" value="${dados.preco !== undefined ? fmt(dados.preco) : ''}" oninput="recalcular()"></td>
+      <td data-label="Quantidade"><input class="qtd num" type="text" inputmode="decimal" onfocus="this.select()" value="${dados.qtd !== undefined ? dados.qtd : (ehServico ? 1 : '')}" oninput="recalcular()"></td>
+      <td data-label="Desconto"><input class="desconto num" type="text" inputmode="decimal" onfocus="this.select()" value="${dados.desconto ? fmt(dados.desconto) : ''}" placeholder="0,00" oninput="recalcular()"></td>
+      <td class="num total-linha" data-label="Total">R$ 0,00</td>
+      <td class="acao-x"><button class="btn-x" title="Remover item" onclick="removerLinha(${id})">✕</button></td>`;
     document.getElementById('itens').appendChild(tr);
+    ajustarAltura(tr.querySelector('.desc'));
     recalcular();
     if (!silencioso) {
       tr.querySelector('.desc').focus();
@@ -929,7 +1051,9 @@
     const geral = servicos + produtos;
     document.getElementById('tot-servicos').textContent = moeda(servicos);
     document.getElementById('tot-produtos').textContent = moeda(produtos);
-    document.getElementById('tot-geral').textContent = moeda(geral);
+    const elGeral = document.getElementById('tot-geral');
+    elGeral.textContent = moeda(geral);
+    elGeral.classList.remove('pulso'); void elGeral.offsetWidth; elGeral.classList.add('pulso');
     document.getElementById('qtd-itens').textContent = qtd;
     document.getElementById('vazio-itens').style.display = qtd ? 'none' : 'block';
     const pct = geral > 0 ? (servicos / geral) * 100 : 0;
@@ -1125,6 +1249,38 @@
       toast('⚠ Erro ao gerar o orçamento: ' + (err.message || err));
     }
   }
+
+  // =====================================================
+  //  LEITURA E INTERAÇÃO
+  // =====================================================
+  function ajustarAltura(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function teclaDesc(e, el) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const linha = el.closest('tr');
+      const preco = linha && linha.querySelector('.preco');
+      if (preco) { preco.focus(); preco.select(); }
+    }
+  }
+
+  function aplicarEscala(valor) {
+    const e = Math.round(Math.min(1.5, Math.max(0.9, Number(valor) || 1)) * 10) / 10;
+    document.documentElement.style.setProperty('--escala', e);
+    const indicador = document.getElementById('zoom-valor');
+    if (indicador) indicador.textContent = Math.round(e * 100) + '%';
+    try { localStorage.setItem('jv_escala', e); } catch (err) {}
+  }
+
+  function ajustarEscala(delta) {
+    aplicarEscala((Number(localStorage.getItem('jv_escala')) || 1) + delta);
+  }
+
+  aplicarEscala(localStorage.getItem('jv_escala') || 1);
 
   // =====================================================
   //  INÍCIO
